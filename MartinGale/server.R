@@ -6,15 +6,30 @@
 #
 
 library(shiny)
+# GetMaximumDropdown <- function (bars, tp )
+# {
+#     N<-nrow(bars)
+#     result<-as.data.table(data.frame(row.names=c("tp", "openTime", "tralOpen", "UpDown")))
+#     askFrom<-bars$askFrom
+#     bidFrom<-bars$bidFrom
+#     bidSpeed<-bars$bidSpeed
+#     askSpeed<-bars$askSpeed
+#     bidClose<-bars$bidClose
+#     askClose<-bars$askClose
+# }
 
 shinyServer(function(input, output) {
 
-    library(lubridate)    
-    
+    library(lubridate) 
+    library(ggplot2)
+    library(data.table)
+
     symbolInput<- reactive({
-        sourceLink<-sprintf("https://github.com/lotgon/Coursera_Shiny/blob/master/MartinGale/data/%s.zip?raw=true", input$symbolInput)
-        file <- paste(tempdir(), "_ptempdownload.zip", sep =  "")
-        download.file(sourceLink, file, mode="wb") 
+        symbolName<<-input$symbolInput
+        sourceLink<-sprintf("https://github.com/lotgon/Coursera_Shiny/blob/master/MartinGale/data/%s.zip?raw=true", symbolName)
+        file <- paste(tempdir(), symbolName, sep =  "")
+        if(!file.exists(file))
+            download.file(sourceLink, file, mode="wb") 
         
         d<-fread(unzip(file))
         d[,askFrom:=ymd_hms(askFromString, tz="GMT")]
@@ -24,7 +39,11 @@ shinyServer(function(input, output) {
 
   output$BidChart <- renderPlot({
     data <- symbolInput()      
-    plot(data$askFrom, data$bidHigh)
+    ggplot(data, aes(x=data$askFrom, y=data$bidHigh)) + geom_line() + ggtitle(symbolName) + xlab("Date") + ylab("Price")
   })
+  
+#   output$tradeReportsTable <-renderTable({
+#       data <- symbolInput()      
+#   })
 
 })

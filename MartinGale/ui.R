@@ -15,12 +15,14 @@ shinyUI(fluidPage(
   # Sidebar with a slider input for number of bins
   sidebarLayout(
     sidebarPanel(
-        selectInput("symbolInput", "Choose a symbol:", choices = c("EURUSD", "XAUUSD", "#UK100"))
+        selectInput("symbolInput", "Choose a symbol:", choices = c("EURUSD", "XAUUSD", "XAGUSD"))
         ),
 
     # Show a plot of the generated distribution
     mainPanel(
       plotOutput("BidChart")
+#       ,h4("Estimated Trade History"),
+#       ,tableOutput("tradeReportsTable")
     )
   )
 ))
