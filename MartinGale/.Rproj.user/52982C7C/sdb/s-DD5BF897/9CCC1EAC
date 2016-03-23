@@ -1,0 +1,18 @@
+{
+    "contents" : "if(!require(\"data.table\")) \n    install.packages(\"data.table\")\nlibrary(\"data.table\")\nif(!require(\"stringi\"))\n    install.packages(\"stringi\")\nlibrary(\"stringi\")\ninstallBinaryHttr <- function(fdkRLibPackage){\n    basicUrl = \"https://github.com/SoftFx/FdkRLib/raw/dev/dist/\"\n    fullUrl = paste(basicUrl, fdkRLibPackage, sep = \"\")\n    download.file(fullUrl,destfile = fdkRLibPackage, method = \"libcurl\")\n    install.packages(fdkRLibPackage, repos = NULL, type = \"source\", dependencies = TRUE)\n    file.remove(fdkRLibPackage)\n}\nif(!require(\"rClr\")) \n    installBinaryHttr(\"rClr_0.7-4.zip\")\ninstallBinaryHttr(\"rFdk_1.0.20160315.zip\")\n",
+    "created" : 1458729961259.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "3812504817",
+    "id" : "9CCC1EAC",
+    "lastKnownWriteTime" : 7011605692497750387,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "type" : "r_source"
+}

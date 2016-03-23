@@ -1,0 +1,17 @@
+{
+    "contents" : "---\ntitle: \"Analyse of TradePerformance\"\nauthor: \"Andrei Pazniak\"\ndate: \"February 3, 2016\"\noutput: html_document\n---\n\n```{r, echo=FALSE, warning=F}\nrequire(data.table)\nrequire(ggplot2)\n\nfile <- paste(tempdir(), \"_ptempdownload.zip\", sep =  \"\")\ndownload.file(\"https://raw.githubusercontent.com/SoftFx/FdkUtilities/master/CSharp/TradePerformance/Results/Development/20160216-171701_Development_FIXLogsOn_TTSLogsOn_MonitoringOn_QuotesOn.txt\", file, mode=\"wb\") \n#d<-read.csv(unzip(file), header=T)\nd<-read.csv(file, header=T)\nd<-as.data.table(d)\nd<-d[TestNumber==1,]\n\n```\n\nNumber of executed orders by account and ReqPerSec\n```{r}\ntable(d$Account, d$OPS_Req, d$TestNumber)\n\n      print(\"Top longest execution\")    \n      print(d[order(-Total)][1:10,])\n      \n      print(\"Worst New execution\")    \n      print(d[order(-New)][1:10,])\n      \n      print(\"Worst Calculated1 execution\")    \n      print(d[order(-Calculated1)][1:10,])\n      \n      print(\"Worst Filled execution\")    \n      print(d[order(-Filled)][1:10,])\n      \n      print(\"Proprtion delay for each execution staqge\")\n      print ( apply( apply(d[,7:10, with=F], 1, prop.table), 1, mean) )\n```\n\nSummary execution time ~ requested orders per second\n```{r}\nd[,OPS_Req:=OPS_Req * TestNumber]\nd[,OPS_Mean:=OPS_Mean * TestNumber]\n\nsi<-rbind( tapply(d$Total, d$OPS_Req, length), \n           tapply(d$Total, d$OPS_Req, min),\n           tapply(d$Total, d$OPS_Req, mean), \n           tapply(d$Total, d$OPS_Req, median), \n           tapply(d$Total, d$OPS_Req, max), \n           tapply(d$Total, d$OPS_Req, sd))\nrownames(si)<-c(\"length\", \"min\", \"mean\", \"median\", \"max\", \"sd\")\nsi<-round(t(si))\nggplot(melt(si), aes(Var1, value)) + geom_point() + facet_grid(Var2 ~ ., scales = \"free\") + xlab(\"Requested Orders Per Second\")\n```\n\n\nScaling\n```{r}\nggplot( d, aes(x=OPS_Req, y=OPS_Mean)) + geom_line() + geom_abline(intercept = 0, slope = 1,  size=2, color='red')\n```",
+    "created" : 1458726316593.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2938804353",
+    "id" : "80EA3FAC",
+    "lastKnownWriteTime" : 1455700984,
+    "path" : "F:/projects/SoftFXPublicGit/FdkExamples/CSharp/TradePerformance/RReport/PerformanceReport.Rmd",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "type" : "r_markdown"
+}

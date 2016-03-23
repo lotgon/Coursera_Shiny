@@ -1,0 +1,18 @@
+{
+    "contents" : "library(rFdk)\nttConnect()\nGetPrecision <-function (symbol)\n{\n    ttConf.Symbol()[name==symbol, precision]\n}\nGetBars <- function( symbol, periodStr=\"M1\" )\n{\n    bars<-as.data.table(ttFeed.BarHistory(symbol, priceTypeStr = \"BidAsk\", barPeriodStr = periodStr, \n                                          startTime = as.Date('2015-01-01'), endTime = as.Date('2016-01-01')))\n    bars[,askClose:=askClose * 10^GetPrecision(symbol)]\n    bars[,bidClose:=bidClose * 10^GetPrecision(symbol)]\n    \n    if( !complete.cases(bars))\n        bars<-bars[complete.cases(bars),]\n    \n    bars\n}\n\nsapply( ttConf.Symbol()$name[1:10], function( symbolName)\n    {\n        symHistory<-GetBars(symbolName)\n        symHistory$askFromString <- format(symHistory$askFrom)\n        write.table(symHistory[,.(bidHigh, askLow, askFromString)], symbolName, row.names = F)\n        fileName<-paste(\"data\", symbolName, sep='\\\\')\n        zip(fileName, symbolName)\n        file.remove(symbolName)\n #       d<-fread(unzip(paste(fileName, \"zip\",  sep=\".\")))\n#        d[,askFrom:=ymd_hms(askFromString, tz=\"GMT\")]\n        #d[,askFromString:=NULL]\n    })\n",
+    "created" : 1458665688176.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "634030344",
+    "id" : "8EE7C1C7",
+    "lastKnownWriteTime" : 1458730637,
+    "path" : "F:/projects/LotgonGithub/Coursera_Shiny/MartinGale/prepareData.R",
+    "project_path" : "prepareData.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "type" : "r_source"
+}
