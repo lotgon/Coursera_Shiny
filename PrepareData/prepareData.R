@@ -18,7 +18,7 @@ GetBars <- function( symbol, periodStr="M1" )
     bars
 }
 
-sapply( ttConf.Symbol()$name[1:10], function( symbolName)
+sapply( ttConf.Symbol()[precision==5 & profitCurrency=='USD', name], function( symbolName)
     {
         symHistory<-GetBars(symbolName)
         symHistory$askFromString <- format(symHistory$askFrom)
