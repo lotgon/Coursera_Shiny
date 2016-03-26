@@ -17,23 +17,25 @@ shinyUI(fluidPage(
     sidebarPanel(
         selectInput("symbolInput", "Choose a symbol:", choices = c("EURUSD", "AUDUSD", "GBPUSD", "LTCUSD", "NZDUSD"))
         ,   sliderInput("tp", "Take Profit:", min = 100,  max = 1000, value = 500, step=50)
+        ,p('Detail information about take profit can be found http://www.investopedia.com/terms/t/take-profitorder.asp')
         ),
 
     # Show a plot of the generated distribution
     mainPanel(
         p('
         This website helps to analyse the simplest and one of the most popular trade strategy called "Martingale". 
-        Detail information about idea of this strategy can be found on wikipedia page: https://en.wikipedia.org/wiki/Martingale_(betting_system).
-        This analyse based on price from https://github.com/lotgon/Coursera_Shiny/tree/master/PrepareData/data
-          '),
-      plotOutput("BidChart"),
+        Detail information about the idea of this strategy can be found on the Wikipedia page: https://en.wikipedia.org/wiki/Martingale_(betting_system).
+        ')
+        ,p('This chart shows the rates for chosen symbol, all data downloaded from from https://github.com/lotgon/Coursera_Shiny/tree/master/PrepareData/data')
+      ,plotOutput("BidChart"),
       plotOutput("MarginChart"),
       plotOutput("ProfitChart"),
-      helpText('Income in % per period:'),
+      helpText('Income per period, in percent:'),
       verbatimTextOutput('percentageIncome'),
       helpText('Orders number:'),
       verbatimTextOutput('ordersNumber')
-      
+      ,p('Number of orders tell us about analyse variability.')
+
 #       ,h4("Estimated Trade History"),
 #       ,tableOutput("tradeReportsTable")
     )
