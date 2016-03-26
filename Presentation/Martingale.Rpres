@@ -1,0 +1,144 @@
+Analyse of "martingale" trade strategy 
+========================================================
+author: Andrei Pazniak
+date: `r Sys.Date()`
+
+Martingale idea
+========================================================
+
+Main idea for Martingale strategy can be found here.
+**https://en.wikipedia.org/wiki/Martingale_(betting_system)**
+
+Adaptation Martingale to forex/stock market
+- Buy/Sell orders as head/tail toss
+- probability of winning is close to 50%
+- min trade size is 0.01
+
+
+Source
+========================================================
+
+Quotes were taken from project https://github.com/lotgon/Coursera_Shiny/tree/master/PrepareData/. 
+To simplify model only the best Bid and Asks were taken with periodicity "Minute". All qoutes were converted to pips.
+
+```{r echo=F, cache=T}
+        library(data.table)
+        library(downloader)
+        library(lubridate)
+        sourceLink<-"https://github.com/lotgon/Coursera_Shiny/blob/master/PrepareData/data/EURUSD.zip?raw=true"
+        file <- paste(tempdir(), "EURUSD", sep =  "\\")
+        download(sourceLink, file, mode="wb") 
+        
+         d<-fread(unzip(file))
+         d[,askFrom:=ymd_hms(askFromString, tz="GMT")]
+         d[,askFromString:=NULL]  
+         d<-d[.N:1]
+```
+```{r echo=F}
+    library(ggplot2)
+    ggplot(d, aes(x=d$askFrom, y=d$bidHigh*10^-5)) + geom_line() + ggtitle("EURUSD") + xlab("Date") + ylab("Price")
+```       
+
+Explanation of input parameters
+========================================================
+
+There are several input parameters
+- Symbol
+- Take Profit. This is a distance between opened price and next decision point. There are 2 possibilities close all positions (positive) and open new position with double volume (negative)
+
+Results
+========================================================
+```{r echo=F}
+            library(data.table)
+ GetMaximumDropdown <- function (bars, tp )
+ {
+    N<-nrow(bars)
+    result<-as.data.table(data.frame())
+    askFrom<-bars$askFrom
+    bidHigh<-bars$bidHigh
+    askLow<-bars$askLow
+    
+    openSell <- bidHigh[1]
+    maxPriceSell <-openSell
+    openTimeSell <- 1
+    
+    openBuy <- askLow[1]
+    minPriceBuy <-openBuy
+    openTimeBuy <- 1   
+    
+    for(i in 1:N)
+    {
+        if( askLow[i] > maxPriceSell ) #better to use askHigh if you need more precise model
+            maxPriceSell <- askLow[i]
+        if( askLow[i] < maxPriceSell - tp) #not equal because we want to imitate not ideal execution 
+        {
+            result<-rbindlist(list(result, data.table(tp, 
+                                                      side="sell",
+                                                      openTimeIndex=openTimeSell,
+                                                      drawdown=maxPriceSell - openSell,
+                                                      age=i-openTimeSell,
+                                                      openPrice=openSell,
+                                                      openTime=askFrom[openTimeSell],
+                                                      closeTime=askFrom[i])))
+            if( i!= N)
+            {
+                openSell <- bidHigh[i+1] #open new order on next step... better to use bidClose instead of high
+                maxPriceSell <- openSell
+                openTimeSell <- i+1
+            }
+        }
+        #the same logic for buy order
+        if( bidHigh[i] < minPriceBuy) 
+            minPriceBuy <- bidHigh[i]
+        if( bidHigh[i] > minPriceBuy + tp ) #not equal because we want to imitate not ideal execution 
+        {
+            result<-rbindlist(list(result, data.table(tp, 
+                                                      side="buy",
+                                                      openTimeIndex=openTimeBuy,
+                                                      drawdown=openBuy - minPriceBuy,
+                                                      age=i-openTimeBuy,
+                                                      openPrice=openBuy,
+                                                      openTime=askFrom[openTimeBuy],
+                                                      closeTime=askFrom[i])))
+            if( i!= N)
+            {
+                openBuy <- askLow[i+1] #open new order on next step... better to use bidClose instead of high
+                minPriceBuy <- openBuy
+                openTimeBuy <- i+1
+            }
+        }
+        
+     }
+    result<-rbindlist(list(result, data.table(tp, 
+                                              "sell",
+                                              openTimeSell,
+                                              maxPriceSell - openSell,
+                                              NA,
+                                              openSell,
+                                              askFrom[openTimeSell],
+                                              askFrom[i])))
+    
+    result<-rbindlist(list(result, data.table(tp, 
+                                              "buy",
+                                              openTimeBuy,
+                                              openBuy - minPriceBuy,
+                                              NA,
+                                              openBuy,
+                                              askFrom[openTimeBuy],
+                                              askFrom[i])))
+    
+    result
+ }
+        r1<- GetMaximumDropdown(d, 500)
+        r1[,DrawdownInTp:=drawdown/500]
+        r1[,index:=1:.N]
+        r1[,usedMargin:=tp*0.01*10*2^(DrawdownInTp)]
+        r1[,balanceGrowth:=tp*0.01*10*index]
+```
+
+Trade-off between income and minimum deposit is the most difficult part for this kind of strategies.
+The minimum required deposit for trade volume 0.01 is shown on the chart
+```{r}
+ggplot(r1, aes(x=openTime, y=usedMargin)) + geom_line() + ylab("Required deposit, USD") + ggtitle("Margin requirement for account")
+
+```        
